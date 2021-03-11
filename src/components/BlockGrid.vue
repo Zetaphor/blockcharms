@@ -188,7 +188,7 @@ export default {
         for (var y = 0; y < this.$refs.renderCanvas.height; y++) {
           const pixel = this.renderContext.getImageData(x, y, 1, 1)
           const data = pixel.data
-          pixelArray[`${x},${y}`] = `rgba(${data[0]}, ${data[1]}, ${data[2]}, ${data[3] / 255})`
+          pixelArray[`${x},${y}`] = `rgb(${data[0]}, ${data[1]}, ${data[2]})`
         }
       }
       return pixelArray

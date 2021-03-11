@@ -112,15 +112,16 @@ export default {
     },
 
     exportImage () {
-      this.link.click(this.link.href = document.getElementById('renderCanvas').toDataURL('image/png'), this.link.download = `${this.seed}-${this.mutateSeed}-${this.colorSeed}`)
+      this.$refs.downloadLink.click(this.$refs.downloadLink.href = document.getElementById('renderCanvas').toDataURL('image/png'), this.$refs.downloadLink.download = `${this.seed}-${this.mutateSeed}-${this.colorSeed}`)
     },
 
     exportModel () {
+      let that = this
       this.gltfExporter.parse(this.creatureObj, function (result) {
         const output = JSON.stringify(result, null, 2);
-        this.$refs.downloadLink.href = URL.createObjectURL(new Blob([output], {type: 'text/plain'}))
-        this.$refs.downloadLink.download = `${this.seed}-${this.mutateSeed}-${this.colorSeed}.gltf`
-        this.$refs.downloadLink.click()
+        that.$refs.downloadLink.href = URL.createObjectURL(new Blob([output], {type: 'text/plain'}))
+        that.$refs.downloadLink.download = `${that.seed}-${that.mutateSeed}-${that.colorSeed}.gltf`
+        that.$refs.downloadLink.click()
       }, this.exportOptions)
     },
 
@@ -130,7 +131,7 @@ export default {
 
       const indexes = Object.keys(imageData)
       for (var i = 0; i < indexes.length; i++) {
-        if (imageData[indexes[i]] === 'rgba(255, 255, 255, 1)') continue
+        if (imageData[indexes[i]] === 'rgb(255, 255, 255)') continue
         const material = new this.three.MeshBasicMaterial({ color: imageData[indexes[i]]})
         const cube = new this.three.Mesh(this.geometry, material)
         const pos = indexes[i].split(',')
