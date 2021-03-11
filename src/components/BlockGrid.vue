@@ -110,30 +110,32 @@ export default {
     },
 
     randBase () {
-      // this.setupCanvas(0);
+      this.updateCreatures(0);
     },
 
     randMutationColor () {
-      // this.setupCanvas(1);
+      this.updateCreatures(1);
     },
 
     randMutation () {
-      // this.setupCanvas(2);
+      this.updateCreatures(2);
     },
 
     randColor () {
-      // this.setupCanvas(3);
+      this.updateCreatures(3);
+    },
+
+    updateCreatures (mode) {
+      this.generateCreatures(this.seed, this.mutateSeed, this.colorSeed, mode)
     },
 
     generateCreatures (newSeed, newMutateSeed, newColorSeed, mode) {
       this.$refs.spriteCanvas.height = this.rows * this.tileSize
       this.$refs.spriteCanvas.width = this.columns * this.tileSize
-      newSeed = Number(this.parseSeed(newSeed)) % 1e9|0;
-      newMutateSeed = Number(this.parseSeed(newMutateSeed)) % 1e9|0;
-      newColorSeed = Number(this.parseSeed(newColorSeed)) % 1e4|0;
-      mode = Number(mode);
-
-      // context.clearRect(0, 0, canvas.width, canvas.height);
+      newSeed = Number(this.parseSeed(newSeed)) % 1e9|0
+      newMutateSeed = Number(this.parseSeed(newMutateSeed)) % 1e9|0
+      newColorSeed = Number(this.parseSeed(newColorSeed)) % 1e4|0
+      mode = Number(mode)
 
       for(let y = 0; y < this.rows; y++) {
         for(let x = 0; x < this.columns; x++)
@@ -141,7 +143,7 @@ export default {
           if ((x || y))
           {
             // 0: Seeds, 1: Mutate seed and color, 2: Mutate color only
-            this.randomSeed = this.sheetSeed;
+            this.randomSeed = this.sheetSeed
             if (mode == 0) {
               newSeed = this.Random(1e9)|0
             }
@@ -203,50 +205,50 @@ export default {
       }
 
       // random chance to flip drawing axis
-      let randomSeed = seed;
-      const flipAxis = Random() < .5;
-      const w = flipAxis ? size-3 : size/2 - 1 |0;
-      const h = !flipAxis ? size-3 : size/2 - 1 |0;
+      let randomSeed = seed
+      const flipAxis = Random() < .5
+      const w = flipAxis ? size-3 : size/2 - 1 |0
+      const h = !flipAxis ? size-3 : size/2 - 1 |0
 
       // apply mutations
-      randomSeed += mutateSeed + 1e8;
-      const spriteSize = size * Random(.9, .6);
-      const density = Random(1, .9);
-      const doubleCenter = Random() < .5;
-      const yBias = Random(.1, -.1);
-      const colorRand = (mode==1 ? .08 : .04);
+      randomSeed += mutateSeed + 1e8
+      const spriteSize = size * Random(.9, .6)
+      const density = Random(1, .9)
+      const doubleCenter = Random() < .5
+      const yBias = Random(.1, -.1)
+      const colorRand = (mode==1 ? .08 : .04)
 
       // recenter
-      x += size/2 |0;
-      y += 2 |0;
+      x += size/2 |0
+      y += 2 |0
 
       function DrawSpriteInternal(x, y, outline)
       {
         // draw each pixel
-        randomSeed = seed;
+        randomSeed = seed
         const passCount = mode == 3 ? 3: 1
         for(let pass=0; pass < passCount; ++pass) {
           for(let k=0; k < w*h; ++k) {
-            const i = flipAxis  ? k/w|0 : k%w;
-            const j = !flipAxis ? k/w|0 : k%w;
+            const i = flipAxis  ? k/w|0 : k%w
+            const j = !flipAxis ? k/w|0 : k%w
 
             // pick new random color using color seed
-            const saveSeed = randomSeed;
-            randomSeed += colorSeed + 1e9;
-            const r = Random(360)|0;
-            let newColor = `hsl(${ r },${ Random(200,0)|0 }%,${ Random(100,20)|0 }%)`;
-            if (outline || mode == 3) newColor = '#000';
-            else if (mode == 1) newColor = r%2? '#777' : '#fff';
-            else if (mode == 2) newColor = `#fff`;
-            if (!k || Random() < colorRand) context.fillStyle = newColor;
-            randomSeed = saveSeed;
+            const saveSeed = randomSeed
+            randomSeed += colorSeed + 1e9
+            const r = Random(360)|0
+            let newColor = `hsl(${ r },${ Random(200,0)|0 }%,${ Random(100,20)|0 }%)`
+            if (outline || mode == 3) newColor = '#000'
+            else if (mode == 1) newColor = r%2? '#777' : '#fff'
+            else if (mode == 2) newColor = `#fff`
+            if (!k || Random() < colorRand) context.fillStyle = newColor
+            randomSeed = saveSeed
 
             // check if pixel should be drawn
-            const isHole = Random() > density;
+            const isHole = Random() > density
             if (Random(spriteSize/2)**2 > i*i + (j-(1-2*yBias)*h/2)**2 && !isHole) {
-              const o = !!outline;
-              context.fillRect(x+i-o-doubleCenter, y+j-o, 1+2*o, 1+2*o);
-              context.fillRect(x-i-o, y+j-o, 1+2*o, 1+2*o);
+              const o = !!outline
+              context.fillRect(x+i-o-doubleCenter, y+j-o, 1+2*o, 1+2*o)
+              context.fillRect(x-i-o, y+j-o, 1+2*o, 1+2*o)
             }
           }
         }
@@ -254,9 +256,9 @@ export default {
 
       // outline then fill
       if (mode != 3) {
-        DrawSpriteInternal(x, y, 1);
+        DrawSpriteInternal(x, y, 1)
       }
-      DrawSpriteInternal(x, y);
+      DrawSpriteInternal(x, y)
     }
   }
 }

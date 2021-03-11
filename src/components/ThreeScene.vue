@@ -3,7 +3,6 @@
     <div id="threeContainer"></div>
     <div class="row">
       <div class="col-xs-12">
-        <button id="btnCopyValues" @click="copyValues">Copy Values To Grid</button>
         <button id="btnExportImg" @click="exportImage">Save Image</button>
         <button id="btnExportModel" @click="exportModel">Save Model</button>
       </div>
@@ -104,13 +103,6 @@ export default {
   },
 
   methods: {
-    copyValues () {
-      // document.getElementById('gridBaseSeed').value = document.getElementById('selectedSeed').value
-      // document.getElementById('gridMutateSeed').value = document.getElementById('selectedMutationSeed').value
-      // document.getElementById('gridColorSeed').value = document.getElementById('selectedColorSeed').value
-      // setupCanvas(0)
-    },
-
     exportImage () {
       this.$refs.downloadLink.click(this.$refs.downloadLink.href = document.getElementById('renderCanvas').toDataURL('image/png'), this.$refs.downloadLink.download = `${this.seed}-${this.mutateSeed}-${this.colorSeed}`)
     },
