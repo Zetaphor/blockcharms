@@ -18,6 +18,10 @@
         <span>Color Seed</span>
         <input type="text" v-model="colorSeed" />
       </div>
+      <div>
+        <span>Rotate</span>
+        <input type="checkbox" v-model="rotate" @change="toggleRotate" />
+      </div>
     </div>
     <p>{{seed}}-{{mutateSeed}}{{colorSeed}}</p>
     <a id="downloadLink" ref="downloadLink"></a>
@@ -26,8 +30,8 @@
 
 <script>
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 
 export default {
   name: 'ThreeScene',
@@ -49,6 +53,7 @@ export default {
 
   data () {
     return {
+      rotate: true,
       three: THREE,
       scene: null,
       sceneWidth: 600,
@@ -58,7 +63,9 @@ export default {
       controls: null,
       gltfExporter: null,
       creatureObj: null,
-      geometry: null,
+      blockMesh: null,
+      dummyObject: null,
+      // geometry: null,
       exportOptions: {
         trs: false,
         onlyVisible: true,
@@ -75,12 +82,11 @@ export default {
       this.scene.background = new this.three.Color(0xffffff)
       this.camera = new this.three.PerspectiveCamera(75, this.sceneWidth / this.sceneHeight, 0.1, 1000)
 
-      this.creatureObj = new this.three.Object3D()
-
-      this.renderer = new this.three.WebGLRenderer()
+      this.renderer = new this.three.WebGLRenderer({ antialias: true })
       this.renderer.setSize(this.sceneWidth, this.sceneHeight)
       this.renderer.domElement.id = 'threeCanvas'
       document.getElementById('threeContainer').appendChild(this.renderer.domElement)
+      this.renderer.outputEncoding = this.three.sRGBEncoding
 
       this.controls = new OrbitControls(this.camera, this.renderer.domElement)
       this.controls.enableDamping = true
@@ -89,14 +95,14 @@ export default {
       this.controls.enableZoom = true
       this.controls.minDistance = 3
       this.controls.maxDistance = 18
+      this.controls.autoRotate = true
 
       this.camera.position.z = 12
-      this.camera.position.y = -8
 
       this.gltfExporter = new GLTFExporter()
 
-      this.creatureObj = new this.three.Object3D()
-      this.geometry = new this.three.BoxGeometry()
+      this.blockMesh = null
+      this.dummyObject = new this.three.Object3D()
 
       this.drawScene()
     })
@@ -109,7 +115,7 @@ export default {
 
     exportModel () {
       let that = this
-      this.gltfExporter.parse(this.creatureObj, function (result) {
+      this.gltfExporter.parse(this.blockMesh, function (result) {
         const output = JSON.stringify(result, null, 2);
         that.$refs.downloadLink.href = URL.createObjectURL(new Blob([output], {type: 'text/plain'}))
         that.$refs.downloadLink.download = `${that.seed}-${that.mutateSeed}-${that.colorSeed}.gltf`
@@ -118,31 +124,47 @@ export default {
     },
 
     buildCreature (imageData) {
-      this.scene.remove(this.creatureObj)
-      this.creatureObj = new this.three.Object3D()
-
       const indexes = Object.keys(imageData)
-      for (var i = 0; i < indexes.length; i++) {
-        if (imageData[indexes[i]] === 'rgb(255, 255, 255)') continue
-        const material = new this.three.MeshBasicMaterial({ color: imageData[indexes[i]]})
-        const cube = new this.three.Mesh(this.geometry, material)
+      this.scene.remove(this.blockMesh)
+      this.blockMesh = new this.three.InstancedMesh(new this.three.BoxBufferGeometry(1, 1, 1), new THREE.MeshBasicMaterial(), indexes.length)
+      this.scene.add(this.blockMesh)
+
+      for ( var i = 0 ; i < indexes.length ; i ++ ) {
         const pos = indexes[i].split(',')
-        cube.position.x = pos[0] - (pos[0] * 2) + 8
-        cube.position.y = pos[1] - (pos[1] * 2)
-        this.creatureObj.add(cube)
+        const x = pos[0] - (pos[0] * 2) + 8
+        const y = pos[1] - (pos[1] * 2)
+        this.dummyObject.position.set(x, y, 0)
+        this.dummyObject.updateMatrix()
+        this.blockMesh.setMatrixAt(i, this.dummyObject.matrix)
+        this.blockMesh.setColorAt(i, new this.three.Color(`rgb(${imageData[indexes[i]][0]},${imageData[indexes[i]][1]},${imageData[indexes[i]][2]})`))
       }
 
-      var boundingBox = new this.three.Box3()
-      boundingBox.setFromObject(this.creatureObj)
-      var center = boundingBox.getCenter()
-      this.controls.target = center
-      this.scene.add(this.creatureObj)
+      this.blockMesh.instanceMatrix.needsUpdate = true
+      this.blockMesh.instanceColor.needsUpdate = true
+
+      let centerHeight = Math.floor(imageData.height / 2) - (Math.floor(imageData.height / 2) * 2.2)
+      this.controls.target.set(0, centerHeight, 0)
+      this.camera.position.y = centerHeight
+
+      // const indexes = Object.keys(imageData)
+      // for (var i = 0; i < indexes.length; i++) {
+      //   const material = new this.three.MeshBasicMaterial({ color: `rgb(${imageData[indexes[i]][0]},${imageData[indexes[i]][1]},${imageData[indexes[i]][2]})` })
+      //   const cube = new this.three.Mesh(new this.three.BufferGeometry(), material)
+      //   const pos = indexes[i].split(',')
+      //   cube.position.x = pos[0] - (pos[0] * 2) + 8
+      //   cube.position.y = pos[1] - (pos[1] * 2)
+      //   this.creatureObj.add(cube)
+      // }
     },
 
     drawScene () {
-      requestAnimationFrame(this.drawScene);
-      this.creatureObj.rotation.y += 0.005
+      requestAnimationFrame(this.drawScene)
+      this.controls.update()
       this.renderer.render(this.scene, this.camera)
+    },
+
+    toggleRotate () {
+      this.controls.autoRotate = this.rotate
     }
   }
 }

@@ -23,10 +23,10 @@ export default {
 
   data () {
     return {
-      selectedBaseSeed: '123456',
+      selectedBaseSeed: '109024575',
       selectedMutateSeed: '0',
       selectedColorSeed: '0',
-      gridBaseSeed: '123456',
+      gridBaseSeed: '109024575',
       gridMutateSeed: '0',
       gridColorSeed: '0',
       gridSize: 16

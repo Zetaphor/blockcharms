@@ -58,8 +58,8 @@ export default {
       colorMode: 0, //0: Full colors, 1: 4 colors, 2: 2 colors, 3: 1 color
       spriteContext: null,
       renderContext: null,
-      rows: 6,
-      columns: 6,
+      rows: 4,
+      columns: 4,
       randomSeed: 0,
       sheetSeed: null,
       animationSeed: null,
@@ -185,12 +185,18 @@ export default {
     },
 
     getPixelArray () {
-      let pixelArray = {};
+      let pixelArray = {
+        width: 0,
+        height: 0
+      };
+
       for (var x = 0; x < this.$refs.renderCanvas.width; x++) {
         for (var y = 0; y < this.$refs.renderCanvas.height; y++) {
           const pixel = this.renderContext.getImageData(x, y, 1, 1)
-          const data = pixel.data
-          pixelArray[`${x},${y}`] = `rgb(${data[0]}, ${data[1]}, ${data[2]})`
+          if (pixel.data[0] === 255 && pixel.data[1] === 255 && pixel.data[2] === 255) continue
+          pixelArray[`${x},${y}`] = pixel.data
+          if (x > pixelArray.width) pixelArray.width = x
+          if (y > pixelArray.height) pixelArray.height = y
         }
       }
       return pixelArray
@@ -272,7 +278,7 @@ canvas {
 }
 
 #renderCanvas {
-  /* display: none; */
+  display: none;
   position: absolute;
   top: 100px;
   right: 100px;
